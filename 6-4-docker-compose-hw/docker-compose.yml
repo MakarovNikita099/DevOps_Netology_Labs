@@ -1,0 +1,67 @@
+version: '3'
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: makarov-na-netology-prometheus
+    restart: always
+    depends_on:
+      - pushgateway
+    volumes:
+      - prometheus-data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    networks:
+      makarov-na-my-netology-hw:
+        ipv4_address: 10.5.0.10
+  pushgateway:
+    image: prom/pushgateway
+    container_name: makarov-na-netology-pushgateway
+    restart: always
+    ports:
+      - 9091:9091
+    networks:
+      makarov-na-my-netology-hw:
+        ipv4_address: 10.5.0.11
+  grafana:
+    image: grafana/grafana
+    container_name: makarov-na-netology-grafana
+    restart: always
+    depends_on:
+      - prometheus
+    ports:
+      - 80:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./prometheus/custom.ini:/etc/grafana/grafana.ini
+    environment:
+      - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
+    networks:
+      makarov-na-my-netology-hw:
+        ipv4_address: 10.5.0.12
+  alertmanager:
+    image: prom/alertmanager
+    container_name: makarov-na-netology-alertmanager
+    restart: always
+    depends_on:
+      - prometheus
+    volumes:
+      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - 9093:9093
+    networks:
+      makarov-na-my-netology-hw:
+        ipv4_address: 10.5.0.13
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+networks:
+  makarov-na-my-netology-hw:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
